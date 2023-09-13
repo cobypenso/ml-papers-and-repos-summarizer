@@ -311,3 +311,6 @@ if __name__ == "__main__":
             print("Send test email: Failure ({response.status_code}, {response.text})")
     else:
         print("No sendgrid api key found. Skipping email")
+
+    print (body)
+    

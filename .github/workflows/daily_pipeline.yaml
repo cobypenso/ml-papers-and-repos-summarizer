@@ -74,3 +74,19 @@ jobs:
         ignore_cert: true
         convert_markdown: true
         priority: normal 
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        cd src
+        
+        # Rename the digest to have a timestamp
+        timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
+        mv digest.html digest_${timestamp}.html
+
+        git add digest_${timestamp}.html
+        git commit -m "Add digest for ${timestamp}"
+        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
