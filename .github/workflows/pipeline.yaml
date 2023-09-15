@@ -1,10 +1,15 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Manual pipeline 
+name:  Pipeline 
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    # Feel free to change this cron schedule
+    # Currently its scheduled for 1:25 pm UTC, Sun-Thurs
+    - cron:  '25 13 * * 0-4'
 
 jobs:
   generate_and_send_digest:
@@ -51,7 +56,7 @@ jobs:
 
         # Rename the digest to have a timestamp
         timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
-        mkdir digest
+        mkdir -p digest
         cp digest.html digest/digest_${timestamp}.html
 
         git add digest/digest_${timestamp}.html
