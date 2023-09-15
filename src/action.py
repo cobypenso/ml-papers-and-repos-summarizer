@@ -1,14 +1,9 @@
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
-
 from datetime import date
 
 import argparse
 import yaml
 import os
 from dotenv import load_dotenv
-import openai
-from relevancy import generate_relevance_score, process_subject_fields
 from download_new_papers import get_papers
 from typing import List, Dict
 
@@ -221,6 +216,11 @@ category_map = {
 }
 
 
+def process_subject_fields(subjects):
+    all_subjects = subjects.split(";")
+    all_subjects = [s.split(" (")[0] for s in all_subjects]
+    return all_subjects
+
 def get_papers_per_topic_and_categories(topic, categories):
     if topic == "Physics":
         raise RuntimeError("You must choose a physics subtopic.")
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         topic = config["topic"]
         categories = config["categories"]
         papers.extend(get_papers_per_topic_and_categories(topic, categories))
-        
+
     papers = remove_paper_duplicate(papers)
     body = generate_body(papers=papers)
 
