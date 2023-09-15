@@ -8,7 +8,7 @@ Want to automate the entire process and get Digested data directly to your Email
 
 This repo while help you do exactly that ✅
 
-## 🔍 What this repo does
+## 🔍 What this repo does 
 
 Staying up to date on [arXiv](https://arxiv.org) papers can take a considerable amount of time, with on the order of hundreds of new papers each day to filter through. 
 
