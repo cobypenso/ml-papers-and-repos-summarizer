@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from download_new_papers import get_papers
 from typing import List, Dict
 
+from create_html import generate_body
+
 # Hackathon quality code. Don't judge too harshly.
 # Feel free to submit pull requests to improve the code.
 
@@ -255,18 +257,6 @@ def remove_paper_duplicate(papers: List[Dict[str,str]]) -> List[Dict[str,str]]:
             new_lst.append(paper)
     
     return new_lst
-
-
-def generate_body(papers: List[Dict[str,str]]):
-    body = "<br><br>".join(
-            [
-                f"""Title: <a href="{paper["main_page"]}">{paper["title"]}</a><br>
-                Authors: {paper["authors"]} <br>
-                Abstract: {paper["abstract"]}"""
-                for paper in papers
-            ]
-        )
-    return body
 
 
 if __name__ == "__main__":
