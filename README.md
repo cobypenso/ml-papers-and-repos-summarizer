@@ -1,4 +1,4 @@
-<p align="center"><img src="./readme_images/banner.png" width=500 /></p>
+<p align="center"><img src="./readme_images/dog_and_robot.png" width=500 /></p>
 
 **Periodical ArXiv Digest to your personal Email 📚.** 
 
