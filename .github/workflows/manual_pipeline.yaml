@@ -35,8 +35,8 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-
-        cd src
+        
+        ls -la
         
         # Rename the digest to have a timestamp
         timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
