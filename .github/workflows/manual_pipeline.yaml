@@ -1,0 +1,47 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Daily pipeline 
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate_and_send_digest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Generate Digest 
+      run: |
+        python src/action.py
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: digest.html
+        path: digest.html
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        cd src
+        
+        # Rename the digest to have a timestamp
+        timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
+        mv digest.html digest_${timestamp}.html
+
+        git add digest_${timestamp}.html
+        git commit -m "Add digest for ${timestamp}"
+        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
