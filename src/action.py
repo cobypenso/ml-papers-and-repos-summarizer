@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 import openai
 from relevancy import generate_relevance_score, process_subject_fields
 from download_new_papers import get_papers
-
+from typing import List, Dict
 
 # Hackathon quality code. Don't judge too harshly.
 # Feel free to submit pull requests to improve the code.
@@ -221,7 +221,7 @@ category_map = {
 }
 
 
-def generate_body(topic, categories, interest, threshold):
+def get_papers_per_topic_and_categories(topic, categories):
     if topic == "Physics":
         raise RuntimeError("You must choose a physics subtopic.")
     elif topic in physics_topics:
@@ -242,26 +242,23 @@ def generate_body(topic, categories, interest, threshold):
         ]
     else:
         papers = get_papers(abbr)
-    if interest:
-        relevancy, hallucination = generate_relevance_score(
-            papers,
-            query={"interest": interest},
-            threshold_score=threshold,
-            num_paper_in_prompt=16,
-        )
-        body = "<br><br>".join(
-            [
-                f'Title: <a href="{paper["main_page"]}">{paper["title"]}</a><br>Authors: {paper["authors"]}<br>Score: {paper["Relevancy score"]}<br>Reason: {paper["Reasons for match"]}'
-                for paper in relevancy
-            ]
-        )
-        if hallucination:
-            body = (
-                "Warning: the model hallucinated some papers. We have tried to remove them, but the scores may not be accurate.<br><br>"
-                + body
-            )
-    else:
-        body = "<br><br>".join(
+    return papers
+
+
+def remove_paper_duplicate(papers: List[Dict[str,str]]) -> List[Dict[str,str]]:
+    seen = set()
+    new_lst: List[Dict[str,str]] = []
+    
+    for paper in papers:
+        if paper['title'].lower() not in seen:
+            seen.add(paper['title'])
+            new_lst.append(paper)
+    
+    return new_lst
+
+
+def generate_body(papers: List[Dict[str,str]]):
+    body = "<br><br>".join(
             [
                 f'Title: <a href="{paper["main_page"]}">{paper["title"]}</a><br>Authors: {paper["authors"]}'
                 for paper in papers
@@ -278,39 +275,23 @@ if __name__ == "__main__":
         "--config", help="yaml config file to use", default="config.yaml"
     )
     args = parser.parse_args()
-    with open(args.config, "r") as f:
-        config = yaml.safe_load(f)
 
-    if "OPENAI_API_KEY" not in os.environ:
-        raise RuntimeError("No openai api key found")
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
+    configs = args.config.split(',')
 
-    topic = config["topic"]
-    categories = config["categories"]
-    from_email = os.environ.get("FROM_EMAIL")
-    to_email = os.environ.get("TO_EMAIL")
-    threshold = config["threshold"]
-    interest = config["interest"]
-    body = generate_body(topic, categories, interest, threshold)
+    papers: List[Dict[str,str]] = []
+    for config_file in configs:
+        with open(config_file, "r") as f:
+            config = yaml.safe_load(f)
+
+        topic = config["topic"]
+        categories = config["categories"]
+        papers.extend(get_papers_per_topic_and_categories(topic, categories))
+        
+    papers = remove_paper_duplicate(papers)
+    body = generate_body(papers=papers)
+
     with open("digest.html", "w") as f:
         f.write(body)
-    if os.environ.get("SENDGRID_API_KEY", None):
-        sg = SendGridAPIClient(api_key=os.environ.get("SENDGRID_API_KEY"))
-        from_email = Email(from_email)  # Change to your verified sender
-        to_email = To(to_email)
-        subject = date.today().strftime("Personalized arXiv Digest, %d %b %Y")
-        content = Content("text/html", body)
-        mail = Mail(from_email, to_email, subject, content)
-        mail_json = mail.get()
-
-        # Send an HTTP POST request to /mail/send
-        response = sg.client.mail.send.post(request_body=mail_json)
-        if response.status_code >= 200 and response.status_code <= 300:
-            print("Send test email: Success!")
-        else:
-            print("Send test email: Failure ({response.status_code}, {response.text})")
-    else:
-        print("No sendgrid api key found. Skipping email")
-
+   
     print (body)
     
