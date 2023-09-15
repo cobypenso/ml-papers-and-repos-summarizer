@@ -31,22 +31,6 @@ jobs:
       with:
         name: digest.html
         path: digest.html
-    - name: Commit and push
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        
-        ls -la
-        
-        # Rename the digest to have a timestamp
-        timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
-        mv digest.html digest_${timestamp}.html
-
-        git add digest_${timestamp}.html
-        git commit -m "Add digest for ${timestamp}"
-        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
     - name: Configure msmtp
       run: |
         echo "account default" > ~/.msmtprc
@@ -58,9 +42,29 @@ jobs:
         echo "password ${{ secrets.GMAIL_APP_PASSWORD }}" >> ~/.msmtprc
         echo "tls on" >> ~/.msmtprc
         chmod 600 ~/.msmtprc
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        ls -la
+
+        # Rename the digest to have a timestamp
+        timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
+        cp digest.html digest_${timestamp}.html
+
+        git add digest_${timestamp}.html
+        git commit -m "Add digest for ${timestamp}"
+        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
     - name: Send email
       run: |
-        SUBJECT="CI/CD Email Report"
+        ls -la
+
+        timestamp=$(date +"%Y-%m-%d")
+        SUBJECT="CI/CD Email Report ${timestamp}"
         TO="${{ secrets.GMAIL_ADDRESS }}"
         BODY=$(<digest.html)
         { echo "To: $TO"; echo "Subject: $SUBJECT"; echo "MIME-Version: 1.0"; echo "Content-Type: text/html"; echo; echo "$BODY"; } | msmtp -t $TO
