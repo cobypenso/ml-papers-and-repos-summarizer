@@ -55,7 +55,7 @@ jobs:
 
         git add digest_${timestamp}.html
         git commit -m "Add digest for ${timestamp}"
-        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:master
+        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
