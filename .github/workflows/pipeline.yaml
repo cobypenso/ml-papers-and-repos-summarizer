@@ -47,23 +47,23 @@ jobs:
         echo "password ${{ secrets.GMAIL_APP_PASSWORD }}" >> ~/.msmtprc
         echo "tls on" >> ~/.msmtprc
         chmod 600 ~/.msmtprc
-    - name: Commit and push
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+    # - name: Commit and push
+    #   run: |
+    #     git config --local user.email "action@github.com"
+    #     git config --local user.name "GitHub Action"
         
-        ls -la
+    #     ls -la
 
-        # Rename the digest to have a timestamp
-        timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
-        mkdir -p digest
-        cp digest.html digest/digest_${timestamp}.html
+    #     # Rename the digest to have a timestamp
+    #     timestamp=$(date +"%Y-%m-%d--%H-%M-%S")
+    #     mkdir -p digest
+    #     cp digest.html digest/digest_${timestamp}.html
 
-        git add digest/digest_${timestamp}.html
-        git commit -m "Add digest for ${timestamp}"
-        git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
-      env:
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    #     git add digest/digest_${timestamp}.html
+    #     git commit -m "Add digest for ${timestamp}"
+    #     git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+    #   env:
+    #     GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     - name: Send email
       run: |
